@@ -1,22 +1,27 @@
-import copy
 import torch
 import numpy as np
-
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd.variable import Variable
 import h5py
+import os
+from torch.autograd.variable import Variable
+from src.data.dataloader import dataloader
 
-def calulate(model, weight, directions, trainloader):
+
+def calulate(model, weight, directions):
+
+    setup_surface_file()
+
+    trainloader, testloader = dataloader()
 
     with h5py.File("./result/surface_file.h5", 'r+') as f:
-        losses, accuracies = [], []
+
         xcoordinates = f['xcoordinates'][:]
         ycoordinates = f['ycoordinates'][:]
 
-        shape = xcoordinates.shape if ycoordinates is None else (len(xcoordinates), len(ycoordinates))
+        shape = (len(xcoordinates), len(ycoordinates))
         losses = -np.ones(shape=shape)
         accuracies = -np.ones(shape=shape)
+
         f["train_loss"] = losses
         f["train_acc"] = accuracies
 
@@ -25,14 +30,8 @@ def calulate(model, weight, directions, trainloader):
         for count, ind in enumerate(inds):
             print("count...%s" % count)
             coord = coords[count]
-            dir_type = 'weights'
-            if dir_type == 'weights':
-                set_weights(model, weight, directions, coord)
-            # elif dir_type == 'states':
-            #    set_states(model, state_dic, directions, coord)
+            set_weights(model, weight, directions, coord)
 
-            # Record the time to compute the loss value
-            # loss_start = time.time()
             criterion = nn.CrossEntropyLoss()
             loss, acc = eval_loss(model, criterion, trainloader)
             print(loss, acc)
@@ -46,6 +45,26 @@ def calulate(model, weight, directions, trainloader):
 
             print('Evaluating %d/%d  (%.1f%%)  coord=%s' % (
                 count, len(inds), 100.0 * count / len(inds), str(coord)))
+
+
+def setup_surface_file():
+    xmin, xmax, xnum = -1, 1, 51
+    ymin, ymax, ynum = -1, 1, 51
+
+    surface_path = "./result/surface_file.h5"
+
+    if os.path.isfile(surface_path):
+        print("%s is already set up" % "surface_file.h5")
+        return
+
+    with h5py.File(surface_path, 'a') as f:
+        f['dir_file'] = "test_dir_name"
+
+        xcoordinates = np.linspace(xmin, xmax, xnum)
+        f['xcoordinates'] = xcoordinates
+
+        ycoordinates = np.linspace(ymin, ymax, ynum)
+        f['ycoordinates'] = ycoordinates
 
 
 def get_unplotted_indices(vals, xcoordinates, ycoordinates=None):
@@ -74,7 +93,7 @@ def get_unplotted_indices(vals, xcoordinates, ycoordinates=None):
         xcoord_mesh, ycoord_mesh = np.meshgrid(xcoordinates, ycoordinates)
         s1 = xcoord_mesh.ravel()[inds]
         s2 = ycoord_mesh.ravel()[inds]
-        return inds, np.c_[s1,s2]
+        return inds, np.c_[s1, s2]
     else:
         return inds, xcoordinates.ravel()[inds]
 
@@ -134,6 +153,7 @@ def get_job_indices(vals, xcoordinates, ycoordinates, comm):
 
     return inds, coords, inds_nums
 
+
 def set_weights(net, weights, directions=None, step=None):
     """
         Overwrite the network's weights with a specified list of tensors
@@ -149,36 +169,13 @@ def set_weights(net, weights, directions=None, step=None):
         if len(directions) == 2:
             dx = directions[0]
             dy = directions[1]
-            changes = [d0*step[0] + d1*step[1] for (d0, d1) in zip(dx, dy)]
+            changes = [d0 * step[0] + d1 * step[1] for (d0, d1) in zip(dx, dy)]
         else:
-            changes = [d*step for d in directions[0]]
+            changes = [d * step for d in directions[0]]
 
         for (p, w, d) in zip(net.parameters(), weights, changes):
             p.data = w + torch.Tensor(d).type(type(w))
 
-
-def set_states(net, states, directions=None, step=None):
-    """
-        Overwrite the network's state_dict or change it along directions with a step size.
-    """
-    if directions is None:
-        net.load_state_dict(states)
-    else:
-        assert step is not None, 'If direction is provided then the step must be specified as well'
-        if len(directions) == 2:
-            dx = directions[0]
-            dy = directions[1]
-            changes = [d0*step[0] + d1*step[1] for (d0, d1) in zip(dx, dy)]
-        else:
-            changes = [d*step for d in directions[0]]
-
-        new_states = copy.deepcopy(states)
-        assert (len(new_states) == len(changes))
-        for (k, v), d in zip(new_states.items(), changes):
-            d = torch.tensor(d)
-            v.add_(d.type(v.type()))
-
-        net.load_state_dict(new_states)
 
 def eval_loss(net, criterion, loader):
     """
@@ -194,7 +191,7 @@ def eval_loss(net, criterion, loader):
     """
     correct = 0
     total_loss = 0
-    total = 0 # number of samples
+    total = 0  # number of samples
 
     use_cuda = torch.cuda.is_available()
 
@@ -213,8 +210,8 @@ def eval_loss(net, criterion, loader):
                     inputs, targets = inputs.cuda(), targets.cuda()
                 outputs = net(inputs)
                 loss = criterion(outputs, targets)
-                total_loss += loss.item()*batch_size
+                total_loss += loss.item() * batch_size
                 _, predicted = torch.max(outputs.data, 1)
                 correct += predicted.eq(targets).sum().item()
 
-    return total_loss/total, 100.*correct/total
+    return total_loss / total, 100. * correct / total
