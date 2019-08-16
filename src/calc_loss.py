@@ -5,17 +5,17 @@ import os
 from src.model.test_model import eval_loss
 
 
-def calulate(model, directions):
+def calulate_loss_landscape(model, directions):
     setup_surface_file()
     init_weights = [p.data for p in model.parameters()]
 
-    with h5py.File("./result/surface_file.h5", 'r+') as f:
+    with h5py.File("../result/3d_surface_file.h5", 'r+') as f:
         xcoordinates = f['xcoordinates'][:]
         ycoordinates = f['ycoordinates'][:]
 
         shape = (len(xcoordinates), len(ycoordinates))
-        losses = -np.ones(shape=shape)
-        accuracies = -np.ones(shape=shape)
+        losses = np.ones(shape=shape)
+        accuracies = np.ones(shape=shape)
 
         f["train_loss"] = losses
         f["train_acc"] = accuracies
@@ -45,7 +45,7 @@ def setup_surface_file():
     xmin, xmax, xnum = -1, 1, 51
     ymin, ymax, ynum = -1, 1, 51
 
-    surface_path = "./result/surface_file.h5"
+    surface_path = "../result/3d_surface_file.h5"
 
     if os.path.isfile(surface_path):
         print("%s is already set up" % "surface_file.h5")
@@ -62,30 +62,12 @@ def setup_surface_file():
 
 
 def get_indices(vals, xcoordinates, ycoordinates):
-    """
-    Args:
-      vals: values at (x, y), with value -1 when the value is not yet calculated.
-      xcoordinates: x locations, i.e.,[-1, -0.5, 0, 0.5, 1]
-      ycoordinates: y locations, i.e.,[-1, -0.5, 0, 0.5, 1]
 
-    Returns:
-      - a list of indices into vals for points that have not yet been calculated.
-      - a list of corresponding coordinates, with one x/y coordinate per row.
-    """
-
-    # Create a list of indices into the vectorizes vals
     inds = np.array(range(vals.size))
-
-    # Select the indices of the un-recorded entries, assuming un-recorded entries
-    # will be smaller than zero. In case some vals (other than loss values) are
-    # negative and those indexces will be selected again and calcualted over and over.
-    inds = inds[vals.ravel() <= 0]
-
-    # Make lists containing the x- and y-coodinates of the points to be plotted
-    # If the plot is 2D, then use meshgrid to enumerate all coordinates in the 2D mesh
     xcoord_mesh, ycoord_mesh = np.meshgrid(xcoordinates, ycoordinates)
     s1 = xcoord_mesh.ravel()[inds]
     s2 = ycoord_mesh.ravel()[inds]
+
     return inds, np.c_[s1, s2]
 
 

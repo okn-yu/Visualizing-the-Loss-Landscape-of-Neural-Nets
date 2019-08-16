@@ -5,7 +5,7 @@ import h5py
 import numpy as np
 import seaborn as sns
 
-def plot_2d_contour(result_file_path, surf_name='train_loss', vmin=0.1, vmax=10, vlevel=0.5, show=False):
+def visualize(result_file_path, surf_name='train_loss', vmin=0.1, vmax=10, vlevel=0.5, show=False):
 
     with h5py.File(result_file_path,'r') as f:
 
@@ -53,6 +53,3 @@ def plot_2d_contour(result_file_path, surf_name='train_loss', vmin=0.1, vmax=10,
                     bbox_inches='tight', format='pdf')
     
         if show: plt.show()
-
-
-plot_2d_contour("./result/surface_file_trained.h5")

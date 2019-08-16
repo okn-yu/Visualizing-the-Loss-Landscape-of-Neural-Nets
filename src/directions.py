@@ -32,7 +32,4 @@ def normalize_direction(direction, weights):
 def normalize_directions_for_weights(direction, weights):
     assert (len(direction) == len(weights))
     for d, w in zip(direction, weights):
-        if d.dim() <= 1:
-            d.fill_(0)  # ignore directions for weights with 1 dimension
-        else:
-            normalize_direction(d, w)
+        normalize_direction(d, w)
