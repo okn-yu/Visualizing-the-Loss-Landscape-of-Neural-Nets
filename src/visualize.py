@@ -5,9 +5,16 @@ import h5py
 import numpy as np
 import seaborn as sns
 
-def visualize(result_file_path, surf_name='train_loss', vmin=0.1, vmax=10, vlevel=0.5, show=False):
+def visualize():
 
-    with h5py.File(result_file_path,'r') as f:
+    vmin = 0.1
+    vmax = 10
+    vlevel = 0.5
+    show = False
+    result_file_path = "../result/3d_surface_file.h5"
+    surf_name = "test_loss"
+
+    with h5py.File("./3d_surface_file.h5",'r') as f:
 
         x = np.array(f['xcoordinates'][:])
         y = np.array(f['ycoordinates'][:])
@@ -53,3 +60,5 @@ def visualize(result_file_path, surf_name='train_loss', vmin=0.1, vmax=10, vleve
                     bbox_inches='tight', format='pdf')
     
         if show: plt.show()
+
+visualize()

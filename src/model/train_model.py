@@ -26,7 +26,6 @@ def prepare_trained_model(model):
         val_loss = 0
         val_acc = 0
 
-        # train
         model.train()
         for i, (images, labels) in enumerate(train_loader):
             images, labels = images.to(device), labels.to(device)
@@ -41,7 +40,6 @@ def prepare_trained_model(model):
         avg_train_loss = train_loss / len(train_loader.dataset)
         avg_train_acc = train_acc / len(train_loader.dataset)
 
-        # val
         model.eval()
         with torch.no_grad():
             for images, labels in test_loader:
@@ -62,22 +60,22 @@ def prepare_trained_model(model):
         val_loss_list.append(avg_val_loss)
         val_acc_list.append(avg_val_acc)
 
-    plt.figure()
-    plt.plot(range(NUM_EPOCHS), train_loss_list, color='blue', linestyle='-', label='train_loss')
-    plt.plot(range(NUM_EPOCHS), val_loss_list, color='green', linestyle='--', label='val_loss')
-    plt.legend()
-    plt.xlabel('epoch')
-    plt.ylabel('loss')
-    plt.title('Training and validation loss')
-    plt.grid()
-
-    plt.figure()
-    plt.plot(range(NUM_EPOCHS), train_acc_list, color='blue', linestyle='-', label='train_acc')
-    plt.plot(range(NUM_EPOCHS), val_acc_list, color='green', linestyle='--', label='val_acc')
-    plt.legend()
-    plt.xlabel('epoch')
-    plt.ylabel('acc')
-    plt.title('Training and validation accuracy')
-    plt.grid()
+    # plt.figure()
+    # plt.plot(range(NUM_EPOCHS), train_loss_list, color='blue', linestyle='-', label='train_loss')
+    # plt.plot(range(NUM_EPOCHS), val_loss_list, color='green', linestyle='--', label='val_loss')
+    # plt.legend()
+    # plt.xlabel('epoch')
+    # plt.ylabel('loss')
+    # plt.title('Training and validation loss')
+    # plt.grid()
+    #
+    # plt.figure()
+    # plt.plot(range(NUM_EPOCHS), train_acc_list, color='blue', linestyle='-', label='train_acc')
+    # plt.plot(range(NUM_EPOCHS), val_acc_list, color='green', linestyle='--', label='val_acc')
+    # plt.legend()
+    # plt.xlabel('epoch')
+    # plt.ylabel('acc')
+    # plt.title('Training and validation accuracy')
+    # plt.grid()
 
     return model
