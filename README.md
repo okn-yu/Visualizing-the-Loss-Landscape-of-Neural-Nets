@@ -8,7 +8,7 @@ https://arxiv.org/abs/1712.09913
 
 ```
 $ python -m src.main
-$ visualize
+$ python -m src.visualize
 ```
 
 # Reference
