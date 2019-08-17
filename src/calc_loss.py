@@ -19,7 +19,7 @@ def calulate_loss_landscape(model, directions):
         inds, coords = get_indices(losses, xcoordinates, ycoordinates)
 
         for count, ind in enumerate(inds):
-            print("count...%s" % count)
+            print("ind...%s" % ind)
             coord = coords[count]
             overwrite_weights(model, init_weights, directions, coord)
 
@@ -30,12 +30,10 @@ def calulate_loss_landscape(model, directions):
             accuracies.ravel()[ind] = acc
 
             print('Evaluating %d/%d  (%.1f%%)  coord=%s' % (
-                count, len(inds), 100.0 * count / len(inds), str(coord)))
+                ind, len(inds), 100.0 * count / len(inds), str(coord)))
 
             f["test_loss"][:] = losses
             f["test_acc"][:] = accuracies
-            f.create_dataset("test_loss", data=losses)
-            f.create_dataset("test_acc", data=accuracies)
             f.flush()
 
 def setup_surface_file():

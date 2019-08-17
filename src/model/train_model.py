@@ -4,7 +4,7 @@ import torch.optim as optim
 import os
 from src.data.dataloader import dataloader
 
-NUM_EPOCHS = 10
+NUM_EPOCHS = 3
 
 def prepare_trained_model(model):
 

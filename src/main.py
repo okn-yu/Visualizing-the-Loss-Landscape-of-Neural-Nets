@@ -5,8 +5,9 @@ from src.directions import create_random_directions
 from src.calc_loss import calulate_loss_landscape
 
 if __name__ == '__main__':
-    model = AlexNet()
+    #model = AlexNet()
     #model = ResNet18()
+    model = ResNet56_noshort()
     rand_directions = create_random_directions(model)
     trained_model = prepare_trained_model(model)
     calulate_loss_landscape(trained_model, rand_directions)
