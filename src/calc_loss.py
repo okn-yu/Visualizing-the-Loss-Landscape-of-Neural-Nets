@@ -10,17 +10,11 @@ def calulate_loss_landscape(model, directions):
     init_weights = [p.data for p in model.parameters()]
 
     with h5py.File("./3d_surface_file.h5", 'r+') as f:
+
         xcoordinates = f['xcoordinates'][:]
         ycoordinates = f['ycoordinates'][:]
-
-        shape = (len(xcoordinates), len(ycoordinates))
-        losses = np.ones(shape=shape)
-        accuracies = np.ones(shape=shape)
-
-        if not ("test_loss" in f.keys()):
-            f["test_loss"] = losses
-        if not ("test_acc" in f.keys()):
-            f["test_acc"] = accuracies
+        losses = f["test_loss"][:]
+        accuracies = f["test_acc"][:]
 
         inds, coords = get_indices(losses, xcoordinates, ycoordinates)
 
@@ -35,13 +29,14 @@ def calulate_loss_landscape(model, directions):
             losses.ravel()[ind] = loss
             accuracies.ravel()[ind] = acc
 
-            f["test_loss"][:] = losses
-            f["test_acc"][:] = accuracies
-            f.flush()
-
             print('Evaluating %d/%d  (%.1f%%)  coord=%s' % (
                 count, len(inds), 100.0 * count / len(inds), str(coord)))
 
+            f["test_loss"][:] = losses
+            f["test_acc"][:] = accuracies
+            f.create_dataset("test_loss", data=losses)
+            f.create_dataset("test_acc", data=accuracies)
+            f.flush()
 
 def setup_surface_file():
     xmin, xmax, xnum = -1, 1, 51
@@ -50,19 +45,33 @@ def setup_surface_file():
     surface_path = "./3d_surface_file.h5"
 
     if os.path.isfile(surface_path):
-        print("%s is already set up" % "surface_file.h5")
+        print("%s is already set up" % "3d_surface_file.h5")
+
         return
 
     with h5py.File(surface_path, 'a') as f:
+        print("create new 3d_sureface_file.h5")
+
         xcoordinates = np.linspace(xmin, xmax, xnum)
         f['xcoordinates'] = xcoordinates
 
         ycoordinates = np.linspace(ymin, ymax, ynum)
         f['ycoordinates'] = ycoordinates
 
+        shape = (len(xcoordinates), len(ycoordinates))
+        losses = -np.ones(shape=shape)
+        accuracies = np.ones(shape=shape)
+
+        f["test_loss"] = losses
+        f["test_acc"] = accuracies
+
+        return
+
 
 def get_indices(vals, xcoordinates, ycoordinates):
     inds = np.array(range(vals.size))
+    inds = inds[vals.ravel() <= 0]
+
     xcoord_mesh, ycoord_mesh = np.meshgrid(xcoordinates, ycoordinates)
     s1 = xcoord_mesh.ravel()[inds]
     s2 = ycoord_mesh.ravel()[inds]

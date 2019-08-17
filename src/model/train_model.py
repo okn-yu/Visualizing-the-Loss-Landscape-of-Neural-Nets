@@ -1,13 +1,23 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from matplotlib import pyplot as plt
+import os
 from src.data.dataloader import dataloader
 
-NUM_EPOCHS = 40
+NUM_EPOCHS = 10
 
 def prepare_trained_model(model):
+
+    if os.path.isfile("./trained_model"):
+        print("no need to train.")
+        model.load_state_dict(torch.load("./trained_model"))
+        return model
+    else:
+        train(model)
+
+def train(model):
     train_loader, test_loader = dataloader()
+
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = model.to(device)
@@ -77,5 +87,7 @@ def prepare_trained_model(model):
     # plt.ylabel('acc')
     # plt.title('Training and validation accuracy')
     # plt.grid()
+
+    torch.save(model.state_dict(), './trained_model')
 
     return model
