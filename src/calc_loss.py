@@ -36,6 +36,9 @@ def calulate_loss_landscape(model, directions):
             f["test_acc"][:] = accuracies
             f.flush()
 
+            #if ind % 300 == 0:
+            #    break
+
 def setup_surface_file():
     xmin, xmax, xnum = -1, 1, 51
     ymin, ymax, ynum = -1, 1, 51
