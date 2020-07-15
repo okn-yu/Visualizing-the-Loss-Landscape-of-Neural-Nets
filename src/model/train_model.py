@@ -14,6 +14,7 @@ def prepare_trained_model(model):
         return model
     else:
         train(model)
+        return model
 
 def train(model):
     train_loader, test_loader = dataloader()
